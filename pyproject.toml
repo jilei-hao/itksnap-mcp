@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "itksnap-mcp"
+version = "0.0.1"
+description = "Agent-callable (MCP) interface to ITK-SNAP human-in-the-loop segmentation"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "PICSL / ITK-SNAP" }]
+keywords = ["itksnap", "segmentation", "human-in-the-loop", "mcp", "agentic", "medical-imaging"]
+dependencies = [
+    "requests",
+    "numpy",
+    "SimpleITK",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+dev = ["mcp>=1.0", "pytest>=8.0"]
+
+[project.urls]
+Homepage = "https://github.com/jilei-hao/itksnap-mcp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/itksnap_mcp"]
