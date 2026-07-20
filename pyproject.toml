@@ -8,8 +8,14 @@ version = "0.0.1"
 description = "Agent-callable (MCP) interface to ITK-SNAP human-in-the-loop segmentation"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
 authors = [{ name = "PICSL / ITK-SNAP" }]
 keywords = ["itksnap", "segmentation", "human-in-the-loop", "mcp", "agentic", "medical-imaging"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
 dependencies = [
     "requests",
     "numpy",

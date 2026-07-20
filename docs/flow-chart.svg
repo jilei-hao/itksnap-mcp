@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 830" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-end">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="fr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-end">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0e7490"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1100" height="830" fill="#ffffff"/>
+  <text x="550" y="34" text-anchor="middle" font-size="23" font-weight="700" fill="#0f172a">ITK-SNAP Agentic API — End-to-End Flow</text>
+  <text x="550" y="56" text-anchor="middle" font-size="13" fill="#64748b">one run: propose → apply → audit, then the human corrects and the diff flows back</text>
+
+  <!-- ===== lane headers ===== -->
+  <g>
+    <rect x="55" y="70" width="190" height="40" rx="8" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+    <text x="150" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">Agent (itksnap-mcp)</text>
+
+    <rect x="320" y="70" width="200" height="40" rx="8" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5"/>
+    <text x="420" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">Model server (itksnap-dls)</text>
+
+    <rect x="600" y="70" width="240" height="40" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+    <text x="720" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="#047857">ITK-SNAP (channel + Logic)</text>
+
+    <rect x="890" y="70" width="180" height="40" rx="8" fill="#fef2f2" stroke="#f43f5e" stroke-width="1.5"/>
+    <text x="980" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="#be123c">Human expert</text>
+  </g>
+
+  <!-- ===== lifelines ===== -->
+  <g stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="4 5">
+    <line x1="150" y1="110" x2="150" y2="805"/>
+    <line x1="420" y1="110" x2="420" y2="805"/>
+    <line x1="720" y1="110" x2="720" y2="805"/>
+    <line x1="980" y1="110" x2="980" y2="805"/>
+  </g>
+
+  <!-- activation bars -->
+  <rect x="414" y="150" width="12" height="42" fill="#a5f3fc" opacity="0.7"/>
+  <rect x="714" y="335" width="12" height="160" fill="#a7f3d0" opacity="0.8"/>
+  <rect x="714" y="525" width="12" height="35" fill="#a7f3d0" opacity="0.8"/>
+  <rect x="714" y="630" width="12" height="128" fill="#a7f3d0" opacity="0.8"/>
+
+  <!-- ===== messages ===== -->
+  <g font-size="11.5" fill="#334155">
+    <!-- 1 propose -->
+    <line x1="150" y1="152" x2="414" y2="152" stroke="#334155" stroke-width="1.6" marker-end="url(#fa)"/>
+    <text x="282" y="145" text-anchor="middle" font-weight="600">1 · propose(ct): upload_raw + run_automatic</text>
+
+    <!-- 2 return labels -->
+    <line x1="426" y1="190" x2="150" y2="190" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#fr)"/>
+    <text x="288" y="183" text-anchor="middle" fill="#0e7490">2 · label volume + {id:name}  (48 structures)</text>
+
+    <!-- 3 gate note (agent-side) -->
+    <rect x="42" y="208" width="230" height="30" rx="6" fill="#fffbeb" stroke="#f59e0b" stroke-dasharray="4 4"/>
+    <text x="157" y="227" text-anchor="middle" fill="#92400e">3 · gate: auto-accept | route-to-human (planned)</text>
+
+    <!-- 4 write mask note -->
+    <rect x="42" y="248" width="230" height="30" rx="6" fill="#eef2ff" stroke="#818cf8"/>
+    <text x="157" y="267" text-anchor="middle" fill="#3730a3">4 · write_label_mask: restore CT geometry</text>
+
+    <!-- 5 set_actor -->
+    <line x1="150" y1="305" x2="714" y2="305" stroke="#334155" stroke-width="1.6" marker-end="url(#fa)"/>
+    <text x="432" y="298" text-anchor="middle" font-weight="600">5 · set_actor("agent")</text>
+
+    <!-- 6 apply_seg_file -->
+    <line x1="150" y1="340" x2="714" y2="340" stroke="#334155" stroke-width="1.6" marker-end="url(#fa)"/>
+    <text x="432" y="333" text-anchor="middle" font-weight="600">6 · apply_seg_file(path, label)</text>
+  </g>
+
+  <!-- 7 ITK-SNAP processing box -->
+  <rect x="596" y="352" width="256" height="138" rx="9" fill="#f0fdf4" stroke="#10b981" stroke-width="1.5"/>
+  <text x="724" y="371" text-anchor="middle" font-size="11.5" font-weight="700" fill="#047857">7 · inside ITK-SNAP (GUI thread)</text>
+  <g font-size="11" fill="#334155">
+    <text x="610" y="392">read NIfTI → PaintMaskWithLabel</text>
+    <text x="610" y="410">→ SegmentationUpdateIterator.Finalize</text>
+    <text x="610" y="428">→ StoreUndoPoint  (commit the delta)</text>
+    <text x="610" y="446">→ BuildFromDeltas:  old = new − delta</text>
+    <text x="610" y="464">→ record{actor: agent}</text>
+    <text x="610" y="482" fill="#047857">→ SegmentationChangeEvent (re-render)</text>
+  </g>
+
+  <g font-size="11.5" fill="#334155">
+    <!-- 8 audit return -->
+    <line x1="714" y1="507" x2="150" y2="507" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#fr)"/>
+    <text x="432" y="500" text-anchor="middle" fill="#0e7490">8 · audit JSON {changed_voxels: 1169665, bbox, before/after}</text>
+
+    <!-- 9 read_audit -->
+    <line x1="150" y1="533" x2="714" y2="533" stroke="#334155" stroke-width="1.6" marker-end="url(#fa)"/>
+    <text x="432" y="526" text-anchor="middle" font-weight="600">9 · read_audit()</text>
+
+    <!-- 10 return -->
+    <line x1="714" y1="560" x2="150" y2="560" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#fr)"/>
+    <text x="432" y="553" text-anchor="middle" fill="#0e7490">10 · audit record  (actor: agent)</text>
+  </g>
+
+  <!-- divider: human disposes -->
+  <line x1="40" y1="595" x2="1075" y2="595" stroke="#f43f5e" stroke-width="1.2" stroke-dasharray="2 6"/>
+  <rect x="405" y="583" width="290" height="24" rx="12" fill="#fef2f2" stroke="#f43f5e"/>
+  <text x="550" y="599" text-anchor="middle" font-size="12" font-weight="700" fill="#be123c">— human disposes: expert corrects in the live GUI —</text>
+
+  <g font-size="11.5" fill="#334155">
+    <!-- 11 human paints -->
+    <line x1="980" y1="637" x2="726" y2="637" stroke="#334155" stroke-width="1.6" marker-end="url(#fa)"/>
+    <text x="853" y="630" text-anchor="middle" font-weight="600">11 · paintbrush correction</text>
+  </g>
+
+  <!-- 12 ITK human commit box -->
+  <rect x="596" y="650" width="256" height="58" rx="9" fill="#fff1f2" stroke="#fb7185" stroke-width="1.4"/>
+  <text x="724" y="670" text-anchor="middle" font-size="11.5" font-weight="700" fill="#be123c">12 · commit → record{actor: human}</text>
+  <text x="724" y="690" text-anchor="middle" font-size="11" fill="#334155">(actor tag auto-resets to human)</text>
+
+  <g font-size="11.5" fill="#334155">
+    <!-- 13 read_audit again -->
+    <line x1="150" y1="732" x2="714" y2="732" stroke="#334155" stroke-width="1.6" marker-end="url(#fa)"/>
+    <text x="432" y="725" text-anchor="middle" font-weight="600">13 · read_audit()</text>
+
+    <!-- 14 human diff return -->
+    <line x1="714" y1="762" x2="150" y2="762" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#fr)"/>
+    <text x="432" y="755" text-anchor="middle" fill="#0e7490">14 · human-tagged correction diff</text>
+  </g>
+
+  <!-- legend -->
+  <g font-size="11" fill="#475569">
+    <line x1="60" y1="795" x2="95" y2="795" stroke="#334155" stroke-width="1.6" marker-end="url(#fa)"/>
+    <text x="102" y="799">call</text>
+    <line x1="160" y1="795" x2="195" y2="795" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#fr)"/>
+    <text x="202" y="799">return</text>
+    <rect x="262" y="789" width="14" height="12" fill="#a7f3d0" opacity="0.8"/>
+    <text x="282" y="799">active (processing)</text>
+  </g>
+</svg>

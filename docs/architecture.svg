@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 780" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-end">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-end">
+      <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1040" height="780" fill="#ffffff"/>
+  <text x="520" y="36" text-anchor="middle" font-size="23" font-weight="700" fill="#0f172a">ITK-SNAP Agentic API — Architecture</text>
+  <text x="520" y="58" text-anchor="middle" font-size="13" fill="#64748b">“model proposes, human disposes” — expert correction as a callable, audited pipeline step</text>
+
+  <!-- ============ TIER 1: Agent / MCP ============ -->
+  <rect x="70" y="76" width="900" height="150" rx="12" fill="#eef2ff" stroke="#6366f1" stroke-width="1.6"/>
+  <text x="90" y="100" font-size="15" font-weight="700" fill="#4338ca">Agent / Orchestration — itksnap-mcp  (Python, pip-installable, no ITK dependency)</text>
+
+  <!-- module boxes -->
+  <g font-size="12" fill="#1e293b">
+    <rect x="92" y="112" width="205" height="98" rx="8" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.3"/>
+    <text x="194" y="132" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">server.py</text>
+    <text x="194" y="152" text-anchor="middle">MCP tools:</text>
+    <text x="194" y="169" text-anchor="middle">propose · apply</text>
+    <text x="194" y="186" text-anchor="middle">read_audit · set_actor</text>
+    <text x="194" y="203" text-anchor="middle" fill="#64748b">list_models</text>
+
+    <rect x="317" y="112" width="205" height="98" rx="8" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.3"/>
+    <text x="419" y="132" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">dls_client.py</text>
+    <text x="419" y="153" text-anchor="middle">DLSClient (HTTP)</text>
+    <text x="419" y="172" text-anchor="middle">upload_image /</text>
+    <text x="419" y="189" text-anchor="middle">run_automatic</text>
+    <text x="419" y="206" text-anchor="middle" fill="#64748b">load_nifti_for_upload</text>
+
+    <rect x="542" y="112" width="205" height="98" rx="8" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.3"/>
+    <text x="644" y="132" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">channel.py</text>
+    <text x="644" y="153" text-anchor="middle">SnapChannel</text>
+    <text x="644" y="172" text-anchor="middle">Unix-socket client</text>
+    <text x="644" y="189" text-anchor="middle">newline JSON-RPC</text>
+
+    <rect x="767" y="112" width="180" height="98" rx="8" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.3"/>
+    <text x="857" y="132" text-anchor="middle" font-size="13" font-weight="700" fill="#4338ca">demo/run_p2.py</text>
+    <text x="857" y="155" text-anchor="middle">scripted driver:</text>
+    <text x="857" y="174" text-anchor="middle">propose → apply</text>
+    <text x="857" y="191" text-anchor="middle">→ read_audit</text>
+  </g>
+
+  <!-- ============ connectors down ============ -->
+  <path d="M419,226 L419,300" stroke="#475569" stroke-width="1.8" fill="none" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <rect x="300" y="250" width="238" height="24" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="419" y="266" text-anchor="middle" font-size="12" fill="#334155">HTTP  ·  propose (upload + run)</text>
+
+  <path d="M660,226 L660,300" stroke="#475569" stroke-width="1.8" fill="none" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <rect x="556" y="250" width="230" height="24" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="671" y="266" text-anchor="middle" font-size="12" fill="#334155">Unix socket  ·  apply / audit</text>
+
+  <!-- ============ TIER 2a: DLS server ============ -->
+  <rect x="70" y="300" width="330" height="150" rx="12" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.6"/>
+  <text x="90" y="324" font-size="15" font-weight="700" fill="#0e7490">Model Server — itksnap-dls</text>
+  <text x="90" y="343" font-size="12" fill="#155e75">FastAPI service · :8911</text>
+  <g font-size="12" fill="#164e63">
+    <text x="90" y="372">• TotalSegmentator (fast / full)</text>
+    <text x="90" y="392">• /v2/start_session · upload_raw</text>
+    <text x="90" y="412">• /v2/run_automatic</text>
+    <text x="90" y="435" fill="#0891b2">→ multi-label volume + {id: name}</text>
+  </g>
+
+  <!-- ============ TIER 2b: ITK-SNAP ============ -->
+  <rect x="470" y="300" width="500" height="452" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="1.6"/>
+  <text x="490" y="324" font-size="15" font-weight="700" fill="#047857">ITK-SNAP — C++ GUI + Logic  (launched with --agent-listen)</text>
+
+  <!-- channel -->
+  <rect x="490" y="338" width="460" height="52" rx="8" fill="#ffffff" stroke="#6ee7b7" stroke-width="1.3"/>
+  <text x="720" y="358" text-anchor="middle" font-size="13" font-weight="700" fill="#047857">main.cxx — QLocalServer (GUI thread)</text>
+  <text x="720" y="378" text-anchor="middle" font-size="11.5" fill="#334155">ping · set_actor · apply_box · apply_seg_file · get_audit</text>
+
+  <path d="M720,390 L720,410" stroke="#059669" stroke-width="1.8" marker-end="url(#arrow2)"/>
+
+  <!-- paint methods -->
+  <rect x="490" y="410" width="460" height="48" rx="8" fill="#ffffff" stroke="#6ee7b7" stroke-width="1.3"/>
+  <text x="720" y="430" text-anchor="middle" font-size="12.5" font-weight="700" fill="#047857">IRISApplication</text>
+  <text x="720" y="448" text-anchor="middle" font-size="11.5" fill="#334155">PaintMaskWithLabel · PaintRegionWithLabel</text>
+
+  <path d="M720,458 L720,478" stroke="#059669" stroke-width="1.8" marker-end="url(#arrow2)"/>
+
+  <!-- edit funnel -->
+  <rect x="490" y="478" width="460" height="48" rx="8" fill="#ffffff" stroke="#6ee7b7" stroke-width="1.3"/>
+  <text x="720" y="498" text-anchor="middle" font-size="12.5" font-weight="700" fill="#047857">SegmentationUpdateIterator → Finalize()</text>
+  <text x="720" y="516" text-anchor="middle" font-size="11.5" fill="#334155">the single edit funnel · encodes the undo delta</text>
+
+  <path d="M720,526 L720,546" stroke="#059669" stroke-width="1.8" marker-end="url(#arrow2)"/>
+
+  <!-- commit chokepoint -->
+  <rect x="490" y="546" width="460" height="48" rx="8" fill="#ffffff" stroke="#34d399" stroke-width="1.6"/>
+  <text x="720" y="566" text-anchor="middle" font-size="12.5" font-weight="700" fill="#047857">LabelImageWrapper::StoreUndoPoint()</text>
+  <text x="720" y="584" text-anchor="middle" font-size="11.5" fill="#334155">the commit chokepoint — capture happens here</text>
+
+  <path d="M720,594 L720,614" stroke="#059669" stroke-width="1.8" marker-end="url(#arrow2)"/>
+
+  <!-- record engine -->
+  <rect x="490" y="614" width="460" height="58" rx="8" fill="#f0fdfa" stroke="#14b8a6" stroke-width="1.4"/>
+  <text x="720" y="634" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f766e">SegmentationAuditRecord::BuildFromDeltas()</text>
+  <text x="720" y="652" text-anchor="middle" font-size="11.5" fill="#334155">walks the RLE delta vs current image:  old = new − delta</text>
+  <text x="720" y="668" text-anchor="middle" font-size="11" fill="#64748b">UndoDataManager delta  ·  actor consume-on-commit</text>
+
+  <path d="M720,672 L720,692" stroke="#059669" stroke-width="1.8" marker-end="url(#arrow2)"/>
+
+  <!-- output record -->
+  <rect x="516" y="692" width="408" height="44" rx="8" fill="#0f766e"/>
+  <text x="720" y="710" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">audit record → ToJSON()</text>
+  <text x="720" y="727" text-anchor="middle" font-size="10.5" fill="#a7f3d0" font-family="monospace">{op, timestamp, actor, changed_voxels, bbox, before/after}</text>
+
+  <!-- note on geometry -->
+  <text x="90" y="470" font-size="11" fill="#64748b">Note: the agent restores the CT’s geometry onto the proposal (CopyInformation) before apply.</text>
+</svg>

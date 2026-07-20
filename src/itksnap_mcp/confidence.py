@@ -43,6 +43,40 @@ def surface_to_volume_instability(labels: np.ndarray, label_ids=None) -> dict[in
     return scores
 
 
+def dice(a: np.ndarray, b: np.ndarray) -> float:
+    """Dice overlap between two boolean masks (1.0 if both are empty)."""
+    a = a.astype(bool)
+    b = b.astype(bool)
+    denom = int(a.sum()) + int(b.sum())
+    return 1.0 if denom == 0 else 2.0 * int((a & b).sum()) / denom
+
+
+def agreement_gate(labels_a: np.ndarray, labels_b: np.ndarray,
+                   threshold: float = 0.9, label_ids=None) -> GateDecision:
+    """Perturbation-based gate: compare two automatic runs of the same case (e.g. two
+    seeds, or fast vs full resolution) label by label. A structure whose two masks
+    disagree — per-label Dice below ``threshold`` — is unstable and routed to a human.
+
+    This is the signal the design calls for (mask instability across perturbed inputs);
+    ``evaluate`` above is the single-result fallback when only one run is available.
+    ``per_label`` here holds the Dice *agreement* (higher = more stable).
+    """
+    ids = label_ids if label_ids is not None else sorted(
+        {int(i) for i in np.unique(labels_a) if i != 0} |
+        {int(i) for i in np.unique(labels_b) if i != 0})
+    per = {lid: dice(labels_a == lid, labels_b == lid) for lid in ids}
+    disagree = {lid: d for lid, d in per.items() if d < threshold}
+    if disagree:
+        worst = min(disagree, key=disagree.get)
+        return GateDecision(
+            route_to_human=True,
+            reason=f"label {worst} unstable (Dice={disagree[worst]:.2f} < {threshold})",
+            per_label=per,
+        )
+    return GateDecision(route_to_human=False, reason="all labels agree across runs",
+                        per_label=per)
+
+
 def evaluate(labels: np.ndarray, threshold: float = 0.6, label_ids=None) -> GateDecision:
     scores = surface_to_volume_instability(labels, label_ids)
     flagged = {lid: s for lid, s in scores.items() if s >= threshold}
