@@ -114,6 +114,15 @@ def build_server(base_url: str = "http://localhost:8911",
         return ch.apply_seg_file(out, itksnap_label)
 
     @mcp.tool()
+    def apply_file(path: str, itksnap_label: int = 1, actor: str = "agent") -> dict:
+        """Apply a segmentation mask NIfTI already on disk (e.g. a cached proposal) into the
+        running ITK-SNAP as a committed edit tagged ``actor``; return the audit record. Use
+        this to apply a pre-computed proposal without re-running the model."""
+        ch = SnapChannel(sock_path)
+        ch.set_actor(actor)
+        return ch.apply_seg_file(path, itksnap_label)
+
+    @mcp.tool()
     def read_audit() -> dict | None:
         """Return the most recent committed edit's structured audit record (or null)."""
         return SnapChannel(sock_path).get_audit()
@@ -127,4 +136,8 @@ def build_server(base_url: str = "http://localhost:8911",
 
 
 if __name__ == "__main__":  # pragma: no cover
-    build_server().run()
+    import os
+    build_server(
+        base_url=os.environ.get("ITKSNAP_DLS_URL", "http://localhost:8911"),
+        sock_path=os.environ.get("ITKSNAP_AGENT_SOCK", "/tmp/snap-agent.sock"),
+    ).run()
