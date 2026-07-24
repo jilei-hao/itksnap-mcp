@@ -22,8 +22,8 @@ live in [`itksnap`](https://github.com/jilei-hao/itksnap); the model server live
 > propose → apply → audit backbone is verified live end-to-end (see below). This is also the intended
 > pip-installable, agent-facing surface for the ITK-SNAP "composable human-in-the-loop" effort.
 
-See **[`docs/DESIGN.md`](docs/DESIGN.md)** for the architecture and the *why*, with the
-[architecture](docs/architecture.svg) and [end-to-end flow](docs/flow-chart.svg) figures.
+The architecture and the *why* (with the architecture + end-to-end-flow figures) are written up in the
+project's design docs, maintained alongside the ITK-SNAP agentic-API sprint.
 
 ---
 
@@ -112,8 +112,6 @@ demo/
   agent_send.py           # send one raw command to the live socket (debugging)
   smoke_totalseg.py       # DLS-only automatic-segmentation smoke test
   manifest.example.yaml   # per-case demo manifest (copy to manifest.yaml, gitignored)
-docs/
-  DESIGN.md · architecture.svg · flow-chart.svg
 ```
 
 ## Architecture (three repos)
