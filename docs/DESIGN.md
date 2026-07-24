@@ -81,16 +81,26 @@ The system spans three repositories, each a tier with a single job. See
 
 ---
 
-## 3. The two ways the agent talks to ITK-SNAP
+## 3. The workspace is the base; the live GUI is a choice
 
-There are exactly two channels, and keeping them separate is a core design choice:
+All work happens against a **persistent ITK-SNAP workspace** — an `.itksnap` file holding the CT and a
+segmentation layer on disk. The agent creates it once (`create_workspace`) and applies model proposals
+into its segmentation **headlessly**, with no running GUI. A live ITK-SNAP is an *optional* view/correct
+surface the agent can open on that same workspace — not a prerequisite for applying a proposal. Keeping
+the three seams separate is a core design choice:
 
 | Channel | Transport | Purpose | Example call |
 |---|---|---|---|
 | **Propose** | HTTP → `itksnap-dls` | Run a model, get a label volume | `propose(ct_path)` |
-| **Drive / read** | Unix domain socket → ITK-SNAP `--agent-listen` | Apply into the live GUI, read the audit | `apply(label_id)`, `read_audit()` |
+| **Apply** (base) | headless → `itksnap-wt` + SimpleITK, editing the workspace segmentation | Commit a proposal, produce the audit record — no GUI needed | `apply(label_id)`, `read_audit()` |
+| **Live** (optional) | Unix domain socket → ITK-SNAP `--agent-listen` | Open the workspace for the human to view/correct; read the correction | `open_in_itksnap()`, `read_audit()` |
 
-The **socket** channel is the novel part. ITK-SNAP is launched with
+Why headless-first? The workspace file is a single durable source of truth, so `apply` never depends on
+a running process, the audit trail survives across sessions, and a case can be prepared entirely by an
+automated pipeline before any human is in the loop. The human correction — *"human disposes"* — is then
+done in a real ITK-SNAP opened on that workspace, so the expert judgement is still captured live.
+
+The **socket** channel remains the novel part for the live beat. ITK-SNAP is launched with
 `--agent-listen /tmp/snap-agent.sock`; it opens a local server that speaks **newline-delimited
 JSON-RPC** on the GUI thread. An external process sends one JSON line, ITK-SNAP acts on the
 *running* GUI and replies with one JSON line. Commands today:
@@ -148,6 +158,12 @@ it.
 capture lives in the *one* function every edit funnels through — the commit sink. One place to get
 right, not eleven.
 
+**The same record, two producers.** In the *live* GUI (the human-correction beat) the record is
+reconstructed from the undo delta as above. In the *headless* workspace apply the agent already holds
+both the before and after label volumes, so it computes the identical record — `changed_voxels`, tight
+bbox, before/after counts — directly, with no delta needed. Both paths emit the same schema, so a
+downstream consumer cannot tell (and need not care) which produced a given record.
+
 ---
 
 ## 5. Who did it? — the actor model
@@ -181,18 +197,22 @@ assumption.
 
 ## 7. What one end-to-end run looks like
 
-See [`flow-chart.svg`](./flow-chart.svg) for the diagram. In words, the demo we ran live on a GPU:
+See [`flow-chart.svg`](./flow-chart.svg) for the diagram. In words:
 
+0. **create_workspace** — the agent makes an `.itksnap` workspace for the case (the CT as the main
+   image plus an empty segmentation), the base everything else applies into.
 1. **propose** — the agent sends a body CT to `itksnap-dls`; TotalSegmentator returns a multi-label
    volume (48 structures: heart, aorta, lungs, vertebrae, …).
 2. **gate** *(planned)* — a confidence check decides *auto-accept* vs *route-to-human*.
 3. **apply** — the agent extracts one structure (e.g. the left upper lung lobe, 1,169,665 voxels),
-   restores geometry, arms `actor = agent`, and sends `apply_seg_file` over the socket. ITK-SNAP
-   applies it through its normal edit/commit path and the audit engine captures the record.
-4. **read_audit** — the agent reads back the structured record (shown in §1).
-5. **human disposes** — the expert corrects the proposal in the live GUI (paintbrush). That edit
-   commits and is auto-tagged `human`; the agent calls `read_audit` again and receives the
-   correction as a structured diff.
+   restores geometry, and merges it into the workspace segmentation under `actor = agent`. This is
+   **headless** — no running ITK-SNAP — and the audit record is computed from the before/after label
+   volumes (§4).
+4. **read_audit** — the agent reads back the structured record (shown in §1) from the workspace log.
+5. **human disposes** — the agent opens ITK-SNAP on the workspace (`open_in_itksnap`) and the expert
+   corrects the proposal in the live GUI (paintbrush). That edit commits and is auto-tagged `human`;
+   the agent calls `read_audit` again and receives the correction as a structured diff over the live
+   socket.
 
 The result: an agent orchestrated an automatic model **and** a human expert as two callable steps
 in one pipeline, with every change captured as reusable, attributable provenance.
